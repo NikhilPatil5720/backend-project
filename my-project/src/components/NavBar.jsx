@@ -15,6 +15,10 @@ export default function Navbar() {
       <div className="space-x-4">
         <Link to="/" className="hover:underline">Home</Link>
         <Link to="/upload" className="hover:underline">Upload</Link>
+                <Link to="/explore">Explore</Link>
+        <Link to="/my-subscriptions" className="hover:underline">My Subscriptions</Link>
+        <Link to="/my-videos" className="hover:underline">My Videos</Link>
+        
         <button
           onClick={handleLogout}
           className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
@@ -25,3 +29,7 @@ export default function Navbar() {
     </nav>
   );
 }
+
+
+
+

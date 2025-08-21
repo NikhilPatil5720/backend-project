@@ -75,8 +75,18 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 
     }
     
+    const channelsWithSubscriberCount = await Promise.all(
+        channels.map(async (sub) => {
+            const count = await Subscription.countDocuments({ channel: sub.channel._id });
+            return {
+                ...sub.channel.toObject(),
+                subscriberCount: count
+            };
+        }
+    ));
+
         
-    return res.status(200).json(new ApiResponse(200,channels,"All channels fetched successfully"))
+    return res.status(200).json(new ApiResponse(200,channelsWithSubscriberCount,"All channels fetched successfully"))
     
 
 
@@ -85,6 +95,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 export {
     toggleSubscription,
     getUserChannelSubscribers,
-    getSubscribedChannels
+    getSubscribedChannels,
+    
 }
 

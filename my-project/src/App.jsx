@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
 import Navbar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
@@ -8,11 +8,10 @@ import Upload from "./pages/Upload";
 import Explore from "./pages/Explore";
 import MyVideos from "./pages/MyVideos";
 import EditVideo from "./pages/EditVideo";
-import CommentSection from "./components/CommentSection";
 import MySubscriptions from "./pages/MySubscriptions";
 import TweetPage from "./pages/TweetPage";
 import FeedPage from "./pages/TweetFeedPage";
-
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
   return (
@@ -23,10 +22,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/videos/:videoId" element={<CommentSection />} />
         <Route path="/tweets" element={<TweetPage />} />
         <Route path="/feed" element={<FeedPage />} />
-
 
         {/* Protected Routes */}
         <Route
@@ -69,9 +66,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/dashboard/:channelId" element={<DashboardWrapper />} />
+        <Route path="/dashboard" element={<DashboardWrapper />} />
       </Routes>
     </Router>
   );
 }
+
+// Wrapper to pass channelId param if available
+const DashboardWrapper = () => {
+  const { channelId } = useParams();
+  return (
+    <ProtectedRoute>
+      <DashboardPage channelId={channelId} />
+    </ProtectedRoute>
+  );
+};
 
 export default App;

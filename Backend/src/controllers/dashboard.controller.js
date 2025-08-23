@@ -4,18 +4,19 @@ import {Subscription} from "../model/subscription.model.js"
 // import {Like} from "../models/like.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import {asyncHandler} from "../utils/asynchandler.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 
-            const {channelId}=req.params
+             // take channelId from params OR fallback to logged-in user
+    const channelId = req.params.channelId || req.user._id;
 
-            if(!channelId){
-                throw new ApiError(400,"channel Id required")
-            }
+    if(!channelId){
+        throw new ApiError(400,"channel Id required");
+    }
 
-            const objectChannelId = new mongoose.Types.ObjectId(channelId); // 🔹 change 2: convert to ObjectId
+    const objectChannelId = new mongoose.Types.ObjectId(channelId);
 
             const stats=await Video.aggregate([
                 {
@@ -66,41 +67,30 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 
 
-
 const getChannelVideos = asyncHandler(async (req, res) => {
-    // TODO: Get all the videos uploaded by the channel
+  const channelId = req.query.channelId || req.user._id;
 
+  if (!channelId) {
+    throw new ApiError(400, "channelId required");
+  }
 
-        // const {channelId}=req.params              this is wrong you should take from query
-        const channelId = req.query.channelId || req.user._id; // 🔹 fix 1
+  if (!mongoose.Types.ObjectId.isValid(channelId)) {
+    throw new ApiError(400, "Invalid channelId");
+  }
 
-        
-        if(!channelId){
-            throw new ApiError(400,"channel Id required")
-        }
+  const objectChannelId = new mongoose.Types.ObjectId(channelId);
 
+  // Fetch videos owned by this channel/user
+  const videos = await Video.find({ owner: objectChannelId });
 
-          if (!mongoose.Types.ObjectId.isValid(channelId)) {
-        throw new ApiError(400, "Invalid channel Id");
-    }
-            // Convert to ObjectId
-    const objectChannelId = new mongoose.Types.ObjectId(channelId); // 🔹 fix 2
+  if (!videos || videos.length === 0) {
+    throw new ApiError(404, "No videos found for this channel");
+  }
 
-
-        const filter={
-            owner:objectChannelId,
-         video:{$exists:true, $ne:null}
-            
-        }
-
-        const video=await Video.find(filter)
-
-        if(!video || video.length === 0){
-            throw new ApiError(400,"no video found")
-        }
-
-        return res.status(200).json(new ApiResponse(200,video,"all video fetched succesfully"))
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videos, "All videos fetched successfully"));
+});
 
 
 

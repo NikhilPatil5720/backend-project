@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -23,9 +25,21 @@ export default function Home() {
 
   if (loading) return <p className="text-center mt-10">Loading videos...</p>;
 
+  
+  const goToDashboard = () => {
+    navigate("/dashboard"); // Navigates to dashboard page
+  };
   return (
+
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Home</h1>
+
+      <button
+        onClick={goToDashboard}
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+      >
+        Go to Dashboard
+      </button>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {videos.map((video) => (
           <Link
@@ -51,3 +65,5 @@ export default function Home() {
     </div>
   );
 }
+
+

@@ -12,6 +12,7 @@ import MySubscriptions from "./pages/MySubscriptions";
 import TweetPage from "./pages/TweetPage";
 import FeedPage from "./pages/TweetFeedPage";
 import DashboardPage from "./pages/DashboardPage";
+import HealthCheckPage from "./pages/Healthcheck";
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/tweets" element={<TweetPage />} />
         <Route path="/feed" element={<FeedPage />} />
+        <Route path="/healthcheck" element={<HealthCheckPage />} />
+
 
         {/* Protected Routes */}
         <Route

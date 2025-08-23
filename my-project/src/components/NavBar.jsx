@@ -19,6 +19,9 @@ export default function Navbar() {
         <Link to="/my-subscriptions" className="hover:underline">My Subscriptions</Link>
         <Link to="/my-videos" className="hover:underline">My Videos</Link>
                 <Link to="/feed">Tweets</Link>
+                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/healthcheck">Health Check</Link>
+                
 
         <button
           onClick={handleLogout}

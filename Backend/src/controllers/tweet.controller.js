@@ -2,9 +2,20 @@
 // import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import {asyncHandler} from "../utils/asynchandler.js"
 import { Tweet } from "../model/tweet.model.js"
 
+
+
+const getAllTweets = asyncHandler(async (req, res) => {
+  const tweets = await Tweet.find()
+    .populate("owner", "username email") // show who tweeted
+    .sort({ createdAt: -1 });            // newest first
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweets, "All tweets fetched successfully"));
+});
 
 
 const createTweet = asyncHandler(async (req, res) => {
@@ -111,5 +122,6 @@ export {
     createTweet,
     getUserTweets,
     updateTweet,
-    deleteTweet
+    deleteTweet,
+    getAllTweets
 }

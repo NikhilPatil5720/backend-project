@@ -10,6 +10,9 @@ import MyVideos from "./pages/MyVideos";
 import EditVideo from "./pages/EditVideo";
 import CommentSection from "./components/CommentSection";
 import MySubscriptions from "./pages/MySubscriptions";
+import TweetPage from "./pages/TweetPage";
+import FeedPage from "./pages/TweetFeedPage";
+
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/videos/:videoId" element={<CommentSection />} />
+        <Route path="/tweets" element={<TweetPage />} />
+        <Route path="/feed" element={<FeedPage />} />
+
 
         {/* Protected Routes */}
         <Route

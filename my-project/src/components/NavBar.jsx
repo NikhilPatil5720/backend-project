@@ -18,7 +18,8 @@ export default function Navbar() {
                 <Link to="/explore">Explore</Link>
         <Link to="/my-subscriptions" className="hover:underline">My Subscriptions</Link>
         <Link to="/my-videos" className="hover:underline">My Videos</Link>
-        
+                <Link to="/feed">Tweets</Link>
+
         <button
           onClick={handleLogout}
           className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"

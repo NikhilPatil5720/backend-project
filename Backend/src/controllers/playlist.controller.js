@@ -1,239 +1,163 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Playlist} from "../model/playlist.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asynchandler.js"
+import { Playlist } from "../model/playlist.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asynchandler.js";
+import { Video } from "../model/video.model.js";
 
+// Create playlist
 
 const createPlaylist = asyncHandler(async (req, res) => {
-    const {name, description,videoId} = req.body
+  const { name, description, videos } = req.body;
 
-    //TODO: create playlist
+  if (!name) {
+    throw new ApiError(400, "Playlist name is required");
+  }
 
-    if(!name  || !description){
-        throw new ApiError(400,"name and description required to create new playlist")
-    }
+  const playlist = await Playlist.create({
+    name,
+    description: description || "",
+    owner: req.user._id,
+    videos: Array.isArray(videos) && videos.length > 0 ? videos : [] // ✅ safe
+  });
 
-    
-    if (!Array.isArray(videoId) || videoId.length === 0) {
-        throw new ApiError(400, "At least one video ID is required");
-    }
-    
-    
-    
-    const newplaylist= await Playlist.create(
-        {name,
-            description, 
-            videofile: videoId,
-            owner: req.user._id}
-        )
-        
-        
-        if(!newplaylist){
-            throw new ApiError(404,"something went wrong while  creating new playlist")
-        }
-        
-        return res.status(200).json(new ApiResponse(200,newplaylist,"new playlist creatd succesfully"))
+  return res
+    .status(201)
+    .json(new ApiResponse(201, playlist, "Playlist created successfully"));
+});
 
 
 
-
-        // you can also use this logic :  firstly upload on cloud every time and then create playlist ... 
-        // here we are prefering video id from video model and taking that url to add that video to specific playlist   
-    
-    
-        // const videoPath=req.files?.video[0]?.path;
-    
-        // if(!videoPath){
-        //     throw new ApiError(400,"video path required")
-        // }
-    
-        // const uploadedvideo= await uploadoncloudinary(videoPath)
-        
-        // if(!uploadedvideo){
-        //     throw new ApiError(402,"Error while uploading video")
-        // }
-    })
-    
-
+// Get all playlists of a user
 const getUserPlaylists = asyncHandler(async (req, res) => {
-        const {userId} = req.params
-    //TODO: get user playlists
+  const { userId } = req.params;
+
+  if (!userId) throw new ApiError(400, "userId is required");
+
+  const playlists = await Playlist.find({ owner: userId }).populate("videos");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlists, "User playlists fetched successfully"));
+});
 
 
-    if(!userId){
-        throw new ApiError(400,"userId required to get playlist of user")
-    }
-
-    // const user= req.user._id
-    // use this above when you want only fetch log in user playlist
-
-    const playlist=await Playlist.find({owner:userId}).populate("videos")
-
-    if(!playlist.length===0){
-        throw new ApiError(402,"User dont have any video playlist")
-    }
-
-    return res.status(200).json(new ApiResponse(200,playlist,"User playlist fetched successfuly"))
-})
-
-
-
+// Get playlist by ID
 const getPlaylistById = asyncHandler(async (req, res) => {
-    const {playlistId} = req.params
-    //TODO: get playlist by id
+  const { playlistId } = req.params;
 
-    if (!playlistId) {
-        throw new ApiError(400, "playlist ID is required to get playlists");
-    }
+  if (!playlistId) throw new ApiError(400, "playlistId is required");
 
-    const playlists = await Playlist.findById(playlistId).populate("videos");
-    // here you can directly also use FindById(playlist) insted of find({_id:playlist})
+  const playlist = await Playlist.findById(playlistId).populate("videos");
 
-    if(!playlists){
-        throw new ApiError(400,"playlist not found plz enter valid plalist id")
-    }
+  if (!playlist) throw new ApiError(404, "Playlist not found");
 
-    if (playlists.length === 0) {
-        throw new ApiError(404, "playlists not have any video");
-    }
+  return res.status(200).json(new ApiResponse(200, playlist, "Playlist fetched successfully"));
+});
 
-    return res.status(200).json(new ApiResponse(200, playlists, " playlists fetched successfully"));
-})
-
-
-
-
-
-
+// Add video to playlist
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
-    const {playlistId, videoId} = req.params
+  const { playlistId, videoId } = req.params;
 
-    if(!playlistId || !videoId){
-        throw new ApiError(400,"playlistId and VideoId required to add video ")
-    }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new ApiError(404, "Playlist not found");
 
-    //find the playlist by it PlaylistId
-    const playlist=await Playlist.findById(playlistId)
-    
-    if(!playlist){
-        throw new ApiError(404,"playlist not found")
-    }
+  if (playlist.videos.includes(videoId)) {
+    throw new ApiError(400, "Video already in playlist");
+  }
 
-    //check if the video already exist in the same playlist
-if (playlist.videos.includes(videoId)) {
-        throw new ApiError(400, "Video already in playlist");
-    }
+  playlist.videos.push(videoId);
+  await playlist.save();
 
+  return res.status(200).json(new ApiResponse(200, playlist, "Video added successfully"));
+});
 
-    //to add video into playlist
-   playlist.videos.push(videoId);
-    await playlist.save();
-
-    return res.status(200).json(new ApiResponse(200, playlist, "Video added to playlist successfully"));
-
-
-})
-
-
-
-
+// Remove video from playlist
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
-    const {playlistId, videoId} = req.params
-    // TODO: remove video from playlist
+  const { playlistId, videoId } = req.params;
 
-    if(!playlistId || !videoId){
-        throw new ApiError(400,"playlist id and videio id required to delete videio from playsist")
-    }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new ApiError(404, "Playlist not found");
 
-    const playlist=await Playlist.findById(playlistId)
-    if(!playlist){
-        throw new ApiError(404,"playlist not found")
-    }
+  if (!playlist.videos.includes(videoId)) {
+    throw new ApiError(400, "Video not in playlist");
+  }
 
-    if(!playlist.videos.includes(videoId)){
-        throw new ApiError(400,"video not found or already deleted")
-    }
+  playlist.videos.pull(videoId);
+  await playlist.save();
 
+  return res.status(200).json(new ApiResponse(200, playlist, "Video removed successfully"));
+});
 
-    // to remove video from specific playlist
-    playlist.videos.pull(videoId)
-    await playlist.save()
-
-
-    return res.status(200).json(new ApiResponse(200, playlist, "Video deleted from playlist successfully"));
-
-})
-
-
-
-
-
+// Delete playlist and its videos
 const deletePlaylist = asyncHandler(async (req, res) => {
-    const {playlistId} = req.params
-    // TODO: delete playlist
+  const { playlistId } = req.params;
 
-      if (!playlistId) {
-        throw new ApiError(400, "playlistId  required to delete playlist");
-    }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new ApiError(404, "Playlist not found");
 
+  // ❌ Don't delete Video documents, just delete the playlist
+  await Playlist.findByIdAndDelete(playlistId);
 
-    //to delete the playlist
-    const playlist = await Playlist.findByIdAndDelete(playlistId);
-    if (!playlist) {
-        throw new ApiError(404, "Playlist not found");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, playlist, " playlist deleted successfully")
-    );
-
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Playlist deleted successfully (videos remain intact)"));
+});
 
 
-
+// Update playlist
+// Update playlist
 const updatePlaylist = asyncHandler(async (req, res) => {
-    const {playlistId} = req.params
-    const {name, description} = req.body
-    //TODO: update playlist
+  const { playlistId } = req.params;
+  const { name, description } = req.body;
 
-    if(!playlistId){
-        throw new ApiError(400,"playlistId require to update playlist")
-    }
+  if (!name && !description) {
+    throw new ApiError(400, "Provide at least one field (name or description)");
+  }
 
-    if (!name && !description) {
-        throw new ApiError(400, "At least one field (name or description) must be provided");
-    }
+  const updated = await Playlist.findByIdAndUpdate(
+    playlistId,
+    { $set: { ...(name && { name }), ...(description && { description }) } },
+    { new: true }
+  );
 
+  if (!updated) throw new ApiError(404, "Playlist not found");
 
-    // to update the playlist
-    const UpdatePlaylist= await Playlist.findByIdAndUpdate(
-        playlistId,
-    
-        {
-            $set:{
-                name,description
-            }
-        },
-        {
-            new:true
-        }
-    )
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updated, "Playlist updated successfully"));
+});
 
 
-    if(!UpdatePlaylist){
-        throw new ApiError(404,"Playlist Not found")
-    }
 
-    return res.status(200).json(new ApiResponse(200,UpdatePlaylist,"Playlist updated succesfully"))
-})
+// ✅ Get all playlists of a user with videos included
+const getUserPlaylistsWithVideos = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) throw new ApiError(400, "userId is required");
+
+  const playlists = await Playlist.find({ owner: userId })
+    .populate({
+      path: "videos",            // populate video details
+      select: "title url views", // only pick needed fields from Video model
+    })
+    .select("name description videos createdAt updatedAt"); // optional
+
+  if (!playlists || playlists.length === 0) {
+    throw new ApiError(404, "No playlists found for this user");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlists, "User playlists with videos fetched successfully"));
+});
+
 
 export {
-    createPlaylist,
-    getUserPlaylists,
-    getPlaylistById,
-    addVideoToPlaylist,
-    removeVideoFromPlaylist,
-    deletePlaylist,
-    updatePlaylist
-}
+  createPlaylist,
+  getUserPlaylists,
+  getPlaylistById,
+  addVideoToPlaylist,
+  removeVideoFromPlaylist,
+  deletePlaylist,
+  updatePlaylist,getUserPlaylistsWithVideos
+};

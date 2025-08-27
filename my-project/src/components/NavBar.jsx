@@ -21,6 +21,10 @@ export default function Navbar() {
                 <Link to="/feed">Tweets</Link>
                 <Link to="/dashboard">Dashboard</Link>
                 <Link to="/healthcheck">Health Check</Link>
+         <Link to="/my-playlist" className="hover:text-blue-400">
+          My Playlists
+        </Link>
+
                 
 
         <button

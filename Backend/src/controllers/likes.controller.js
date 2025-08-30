@@ -6,6 +6,8 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
+        const userId = req.user._id; // from JWT middleware
+
     const { videoId } = req.params
     //TODO: toggle like on video
 
@@ -15,7 +17,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
     const filter = {
         video: videoId,
-        user: req.user._id
+        likedBy: userId
 
     }
 
@@ -167,9 +169,43 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     // );
 
 
+
+    const getVideoLikesCount = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const count = await Like.countDocuments({ video: videoId });
+    return res.status(200).json(new ApiResponse(200, { count }, "Video likes count fetched"));
+});
+
+const getCommentLikesCount = asyncHandler(async (req, res) => {
+    const { commentId } = req.params;
+    const count = await Like.countDocuments({ comment: commentId });
+    return res.status(200).json(new ApiResponse(200, { count }, "Comment likes count fetched"));
+});
+
+const isVideoLikedByUser = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const liked = await Like.exists({ video: videoId, likedBy: req.user._id });
+    return res.status(200).json(new ApiResponse(200, { liked: !!liked }, "Video liked status fetched"));
+});
+
+const isCommentLikedByUser = asyncHandler(async (req, res) => {
+    const { commentId } = req.params;
+    const liked = await Like.exists({ comment: commentId, likedBy: req.user._id });
+    return res.status(200).json(new ApiResponse(200, { liked: !!liked }, "Comment liked status fetched"));
+});
+
+
 export {
     toggleCommentLike,
     toggleTweetLike,
     toggleVideoLike,
-    getLikedVideos
+    getLikedVideos,
+    getVideoLikesCount,
+    getCommentLikesCount,
+    isVideoLikedByUser,
+    isCommentLikedByUser
+
 }
+
+
+

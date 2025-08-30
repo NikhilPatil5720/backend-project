@@ -2,13 +2,13 @@ import mongoose, {isValidObjectId} from "mongoose"
 import {Video} from  "../model/video.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asynchandler.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadoncloudinary} from "../utils/cloudinary.js"
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
-  const filter = { isPublish: true }; // only public videos
+  const filter = { isPublished: true }; // only public videos
 
   if (userId) {
     filter.owner = userId; // optional: show videos by specific user
@@ -70,7 +70,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     owner: req.user._id,
     title,
     description,
-    isPublish: true,
+    isPublished: true,
     duration: 0, // placeholder, you can calculate actual duration if needed
   });
 

@@ -29,7 +29,7 @@ const videoSchema= new Schema({
         require:true,
         
     },
-    isPublish:{
+    isPublished:{
         type: Boolean,
         default:true,
         

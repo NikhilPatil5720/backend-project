@@ -225,39 +225,26 @@ const accesstokenandrefreshtoken=asyncHandler(async(req,res)=>{
        }
 }
 )
+const resetpassword = asyncHandler(async (req, res) => {
+    const { email, oldpass, newpass } = req.body;
 
-const resetpassword=asyncHandler(async(req,res)=>{
-        
-        const {oldpass,newpass}=req.body; 
-        
-
-           if (!req.user || !req.user._id) {
-        throw new ApiError(401, "Unauthorized: User not found in request");
-    }
-
-
-        const user= await User.findById(req.user._id).select("+password");
-        if (!user) {
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
         throw new ApiError(404, "User not found");
     }
 
-        
-        const ispasswordValid= await user.isCorrect(oldpass)
+    const isPasswordValid = await user.isCorrect(oldpass);
+    if (!isPasswordValid) {
+        throw new ApiError(400, "Old password does not match");
+    }
 
-       if(!ispasswordValid){
-        throw new ApiError(400,"password not match")
-       }
+    user.password = newpass;
+    await user.save({ validateBeforeSave: false });
 
-       user.password=newpass
-        await user.save({validateBeforeSave:false})
-
-
-        return res
-        .status(200)
-        .json(
-                new ApiResponse(200,{},"password change successfully")
-        )
-})
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Password changed successfully")
+    );
+});
 
 const getcurruser=asyncHandler(async(req,res)=>{
         return res

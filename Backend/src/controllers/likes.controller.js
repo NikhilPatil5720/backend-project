@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
-        const userId = req.user._id; // from JWT middleware
+    const userId = req.user._id; // from JWT middleware
 
     const { videoId } = req.params
     //TODO: toggle like on video
@@ -35,6 +35,8 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     }
 
 })
+
+
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const { commentId } = req.params
@@ -67,35 +69,39 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     }
 })
 
+
+
 const toggleTweetLike = asyncHandler(async (req, res) => {
     const { tweetId } = req.params
     //TODO: toggle like on tweet
 
-    if(!tweetId){
-        throw new ApiError(400,"tweet id required")
+    if (!tweetId) {
+        throw new ApiError(400, "tweet id required")
     }
 
-    const filter={
-        tweet:tweetId,
-        likedBy:req.user._id
+    const filter = {
+        tweet: tweetId,
+        likedBy: req.user._id
     }
 
-   try {
-     const existingTweet= await Like.findOne(filter)
- 
-     if(existingTweet){
-         await Like.deleteOne(filter)
-         return res.status(200).json(new ApiResponse(200,null,"Tweet like"))
-     }
-     else{
-         await Like.create(filter)
-         return res.status(200).json(new ApiResponse(200,null,"Tweet unlike"))
-     }
-   } catch (error) {
-           throw new ApiError(400, "Invalid Tweet ID");
+    try {
+        const existingTweet = await Like.findOne(filter)
 
-   }
+        if (existingTweet) {
+            await Like.deleteOne(filter)
+            return res.status(200).json(new ApiResponse(200, null, "Tweet like"))
+        }
+        else {
+            await Like.create(filter)
+            return res.status(200).json(new ApiResponse(200, null, "Tweet unlike"))
+        }
+    } catch (error) {
+        throw new ApiError(400, "Invalid Tweet ID");
+
+    }
 })
+
+
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
@@ -117,7 +123,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                 as: "videoData"
             }
         },
-        
+
         {
             $project: {
                 _id: 0,                // hide Like _id
@@ -147,30 +153,30 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 
 //this code is totally working without the aggregation pipelines
 
-    // const {userId}=req.body
+// const {userId}=req.body
 
-    // if(!userId){
-    //     throw new ApiError(400,"user id required")
-    // }
+// if(!userId){
+//     throw new ApiError(400,"user id required")
+// }
 
-    // const filter={
-    //     likedBy:req.user._id,
-    //     video:{$exists:true, $ne:null}   // filter for getting all video only not all coment ant tweet
-    // }
+// const filter={
+//     likedBy:req.user._id,
+//     video:{$exists:true, $ne:null}   // filter for getting all video only not all coment ant tweet
+// }
 
-    // const likedVideos = await Like.find(filter).populate("video"); 
+// const likedVideos = await Like.find(filter).populate("video"); 
 
-    //  if (!likedVideos || likedVideos.length === 0) {
-    //     throw new ApiError(404, "No liked videos found");
-    // }
+//  if (!likedVideos || likedVideos.length === 0) {
+//     throw new ApiError(404, "No liked videos found");
+// }
 
-    // return res.status(200).json(
-    //     new ApiResponse(200, likedVideos, "All liked videos fetched successfully")
-    // );
+// return res.status(200).json(
+//     new ApiResponse(200, likedVideos, "All liked videos fetched successfully")
+// );
 
 
 
-    const getVideoLikesCount = asyncHandler(async (req, res) => {
+const getVideoLikesCount = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     const count = await Like.countDocuments({ video: videoId });
     return res.status(200).json(new ApiResponse(200, { count }, "Video likes count fetched"));

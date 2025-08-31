@@ -10,18 +10,18 @@ const router = Router();
 router.route("/register").post(
     upload.fields([{
         name: "avatar",
-        maxCount:1,
+        maxCount: 1,
 
-    },{
-        name:"coverImg",
-        maxCount:1,
+    }, {
+        name: "coverImg",
+        maxCount: 1,
     }
-])
-    
-    ,registerUser)
+    ])
+
+    , registerUser)
 
 
-    // secure routes 
+// secure routes 
 
 router.route("/login").post(loginUser)
 
@@ -29,9 +29,9 @@ router.route("/logout").post(verifyJWT, logoutUser)
 
 router.route("/refresh-token").post(accesstokenandrefreshtoken)
 
-router.route("/reset-password").post( resetpassword)
+router.route("/reset-password").post(resetpassword)
 
-router.route("/getcurrentuser").get(verifyJWT,getcurruser)
+router.route("/getcurrentuser").get(verifyJWT, getcurruser)
 
 router.patch("/views/:videoId", incrementViews);
 

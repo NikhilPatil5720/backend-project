@@ -56,6 +56,7 @@ const userSchma= new Schema({
 })
 
 
+// hash the password before saving the user model
 userSchma.pre("save",async function (next) {
     if(!this.isModified("password")) return next();
 
@@ -64,15 +65,19 @@ userSchma.pre("save",async function (next) {
     
 }) 
 
+
+// method to compare the password for login
 userSchma.methods.isCorrect=async function (password) {
  return  await bcrypt.compare(password,this.password)   
 }
 
+
+// token expiry time
 const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "15m";
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
 
-
+// method to generate access token 
 userSchma.methods.generateAccessToken=function(){
     return jsonwebtoken.sign({
         _id:this.id,
@@ -87,7 +92,7 @@ userSchma.methods.generateAccessToken=function(){
 }
 
 
-
+// method to generate refresh token
 userSchma.methods.generateRefreshToken=function(){
     return jsonwebtoken.sign({
         _id:this.id,

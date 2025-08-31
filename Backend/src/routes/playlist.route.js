@@ -13,26 +13,22 @@ import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// ✅ Apply JWT middleware to all playlist routes
+//  Apply JWT middleware to all playlist routes
 router.use(verifyJWT);
 
 // ================= PLAYLIST ROUTES ================= //
 
 // Create a new playlist
-// POST /api/v1/playlists
 router.route("/").post(createPlaylist);
 
 // Get all playlists of a user
-// GET /api/v1/playlists/user/:userId
 router.route("/user/:userId").get(getUserPlaylists);
 
 
 // Add video to playlist
-// PATCH /api/v1/playlists/add/:videoId/:playlistId
 router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
 
 // Remove video from playlist
-// DELETE /api/v1/playlists/remove/:videoId/:playlistId
 router.route("/remove/:videoId/:playlistId").delete(removeVideoFromPlaylist);
 
 // Get, update, delete a playlist by ID
@@ -45,13 +41,12 @@ router
     .put(updatePlaylist)
     .delete(deletePlaylist);
 
-    
 
-    // ✅ Get all playlists of a user with videos
-// GET /api/v1/playlists/user/:userId/videos
+
+//  Get all playlists of a user with videos
 router.route("/user/:userId/videos").get(getUserPlaylistsWithVideos);
 
-
+// Update a playlist by ID
 router.put("/playlists/:playlistId", updatePlaylist);
 
 export default router;

@@ -10,18 +10,20 @@ import {
     isVideoLikedByUser,
     isCommentLikedByUser
 } from "../controllers/likes.controller.js"
-import {verifyJWT} from "../middleware/auth.middleware.js"
+import { verifyJWT } from "../middleware/auth.middleware.js"
 
 const router = Router();
 router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
+
+// Routes for toggling likes and getting liked videos
 router.route("/toggle/v/:videoId").post(toggleVideoLike);
 router.route("/toggle/c/:commentId").post(toggleCommentLike);
 router.route("/toggle/t/:tweetId").post(toggleTweetLike);
 router.route("/videos").get(getLikedVideos);
 
 
-
+// Additional routes for like counts and status
 router.get("/count/v/:videoId", getVideoLikesCount);
 router.get("/count/c/:commentId", getCommentLikesCount);
 router.get("/status/v/:videoId", verifyJWT, isVideoLikedByUser);

@@ -1,51 +1,50 @@
 import mongoose from "mongoose"
-import {Video} from "../model/video.model.js"
-import {Subscription} from "../model/subscription.model.js"
-// import {Like} from "../models/like.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asynchandler.js"
+import { Video } from "../model/video.model.js"
+import { Subscription } from "../model/subscription.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 
-             // take channelId from params OR fallback to logged-in user
+    // take channelId from params OR fallback to logged-in user
     const channelId = req.params.channelId || req.user._id;
 
-    if(!channelId){
-        throw new ApiError(400,"channel Id required");
+    if (!channelId) {
+        throw new ApiError(400, "channel Id required");
     }
 
     const objectChannelId = new mongoose.Types.ObjectId(channelId);
 
-            const stats=await Video.aggregate([
-                {
-                    $match:{
-                    owner:objectChannelId
-                }
-            },{
+    const stats = await Video.aggregate([
+        {
+            $match: {
+                owner: objectChannelId
+            }
+        }, {
 
-                    $lookup:{
-                            from:"likes",
-                            localField:"_id",
-                            foreignField:"video",
-                            as:"likes"
-                    }
-            },{
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        }, {
 
-                $group:{
-                _id: null,    
+            $group: {
+                _id: null,
                 totalVideos: { $sum: 1 },
                 totalViews: { $sum: "$views" },
                 totalLikes: { $sum: { $size: "$likes" } }
-                }
             }
+        }
 
 
-            ])
+    ])
 
 
-        // Get total subscribers separately (from Subscription collection)
+    // Get total subscribers separately (from Subscription collection)
     const subscriberCount = await Subscription.countDocuments({ channel: objectChannelId });
 
     if (!stats || stats.length === 0) {
@@ -66,35 +65,37 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 
 
-
+//get all videos of a channel
 const getChannelVideos = asyncHandler(async (req, res) => {
-  const channelId = req.query.channelId || req.user._id;
+    const channelId = req.query.channelId || req.user._id;
 
-  if (!channelId) {
-    throw new ApiError(400, "channelId required");
-  }
+    if (!channelId) {
+        throw new ApiError(400, "channelId required");
+    }
 
-  if (!mongoose.Types.ObjectId.isValid(channelId)) {
-    throw new ApiError(400, "Invalid channelId");
-  }
+    if (!mongoose.Types.ObjectId.isValid(channelId)) {
+        throw new ApiError(400, "Invalid channelId");
+    }
 
-  const objectChannelId = new mongoose.Types.ObjectId(channelId);
+    const objectChannelId = new mongoose.Types.ObjectId(channelId);
 
-  // Fetch videos owned by this channel/user
-  const videos = await Video.find({ owner: objectChannelId });
 
-  if (!videos || videos.length === 0) {
-    throw new ApiError(404, "No videos found for this channel");
-  }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, videos, "All videos fetched successfully"));
+    // Fetch videos owned by this channel/user
+    const videos = await Video.find({ owner: objectChannelId });
+
+    if (!videos || videos.length === 0) {
+        throw new ApiError(404, "No videos found for this channel");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, videos, "All videos fetched successfully"));
 });
 
 
 
 export {
-    getChannelStats, 
+    getChannelStats,
     getChannelVideos
-    }
+}

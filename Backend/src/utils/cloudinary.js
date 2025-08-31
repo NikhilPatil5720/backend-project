@@ -1,13 +1,13 @@
 import dotenv from "dotenv";
-dotenv.config(); // ✅ Make sure env is loaded even if index.js misses it
+dotenv.config(); // Make sure env is loaded even if index.js misses it
 
 
 import { v2 as cloudinary } from 'cloudinary';
 import { promises as fs } from "fs"; // use fs.promises
 
-cloudinary.config({ 
-    cloud_name: process.env.CLOUD_NAME, 
-    api_key: process.env.CLOUD_API, 
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.CLOUD_API,
     api_secret: process.env.CLOUD_SECRET
 });
 

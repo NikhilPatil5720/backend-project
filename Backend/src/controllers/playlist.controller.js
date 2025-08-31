@@ -1,8 +1,9 @@
 import { Playlist } from "../model/playlist.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { asyncHandler } from "../utils/asynchandler.js";
 import { Video } from "../model/video.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+
 
 // Create playlist
 
@@ -41,6 +42,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 });
 
 
+
 // Get playlist by ID
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
@@ -54,8 +56,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, playlist, "Playlist fetched successfully"));
 });
 
+
+
 // Add video to playlist
-// playlist.controller.js
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { videoId, playlistId } = req.params;
 
@@ -79,6 +82,8 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, playlist, "Video added to playlist"));
 });
 
+
+
 // Remove video from playlist
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
@@ -96,6 +101,8 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, playlist, "Video removed successfully"));
 });
 
+
+
 // Delete playlist and its videos
 const deletePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
@@ -103,7 +110,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
   const playlist = await Playlist.findById(playlistId);
   if (!playlist) throw new ApiError(404, "Playlist not found");
 
-  // ❌ Don't delete Video documents, just delete the playlist
+  //  Don't delete Video documents, just delete the playlist
   await Playlist.findByIdAndDelete(playlistId);
 
   return res
@@ -112,7 +119,8 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 });
 
 
-// Update playlist
+
+
 // Update playlist
 const updatePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
@@ -137,7 +145,8 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 
 
 
-// ✅ Get all playlists of a user with videos included
+
+//  Get all playlists of a user with videos included
 const getUserPlaylistsWithVideos = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
@@ -167,5 +176,5 @@ export {
   addVideoToPlaylist,
   removeVideoFromPlaylist,
   deletePlaylist,
-  updatePlaylist,getUserPlaylistsWithVideos
+  updatePlaylist, getUserPlaylistsWithVideos
 };

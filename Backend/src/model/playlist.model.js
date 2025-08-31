@@ -1,4 +1,5 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
+
 
 const playlistSchema = new Schema({
     name: {
@@ -18,7 +19,7 @@ const playlistSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
-}, {timestamps: true})
+}, { timestamps: true })
 
 
 

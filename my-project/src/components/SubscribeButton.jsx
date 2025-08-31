@@ -21,9 +21,8 @@ export default function SubscribeButton({ channelId }) {
   return (
     <button
       onClick={toggleSubscription}
-      className={`px-4 py-2 rounded-lg text-white ${
-        subscribed ? "bg-gray-500" : "bg-red-600"
-      }`}
+      className={`px-4 py-2 rounded-lg text-white ${subscribed ? "bg-gray-500" : "bg-red-600"
+        }`}
     >
       {subscribed ? "Subscribed" : "Subscribe"}
     </button>

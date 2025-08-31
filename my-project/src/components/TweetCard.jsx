@@ -5,6 +5,7 @@ export default function TweetCard({ tweet, onUpdated, onDeleted }) {
   const [editing, setEditing] = useState(false);
   const [newContent, setNewContent] = useState(tweet.content);
 
+  // Handle tweet update
   const handleUpdate = async () => {
     try {
       const res = await updateTweet(tweet._id, newContent);
@@ -15,6 +16,7 @@ export default function TweetCard({ tweet, onUpdated, onDeleted }) {
     }
   };
 
+  // Handle tweet deletion
   const handleDelete = async () => {
     try {
       await deleteTweet(tweet._id);

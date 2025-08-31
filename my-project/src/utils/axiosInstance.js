@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // ❌ remove this localStorage token logic
+    //  remove this localStorage token logic
     // because backend uses cookies not Authorization headers
     return config;
   },

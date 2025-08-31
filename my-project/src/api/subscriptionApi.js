@@ -1,4 +1,3 @@
-// src/api/subscription.api.js
 import api from "../utils/axiosInstance";
 
 // Get all channels the user is subscribed to

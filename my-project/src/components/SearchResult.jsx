@@ -1,4 +1,3 @@
-// src/pages/SearchResults.jsx
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import api from "../utils/axiosInstance";

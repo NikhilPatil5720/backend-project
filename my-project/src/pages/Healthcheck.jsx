@@ -23,6 +23,7 @@ const HealthCheckPage = () => {
     fetchHealthCheck();
   }, []);
 
+
   if (loading) return <p>Checking server health...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 

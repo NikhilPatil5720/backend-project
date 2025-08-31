@@ -124,13 +124,20 @@ export const getAllPlaylists = async (userId) => {
 
 // ✅ Add video to playlist
 // Add video to playlist
-export const addVideoToPlaylist = async (videoId, playlistId) => {
-  if (!videoId || !playlistId) {
-    throw new Error("Both videoId and playlistId are required!");
+// playlistApi.js
+// playlistApi.js
+export const addVideoToPlaylist = async (playlistId, videoId) => {
+  try {
+    const res = await axiosInstance.patch(
+      `/playlists/add/${videoId}/${playlistId}`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error saving to playlist:", error);
+    throw error;
   }
-  // send in correct order: videoId first, playlistId second
-  return await axiosInstance.patch(`/playlists/add/${videoId}/${playlistId}`);
 };
+
 
 
 // ✅ Remove video from playlist

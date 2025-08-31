@@ -2987,10 +2987,757 @@
 
 
 
+// import { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import axiosInstance from "../utils/axiosInstance";
+// import { FaThumbsUp } from "react-icons/fa";
+// import { toggleVideoLike, toggleCommentLike } from "../api/likeApi";
+// import { getAllPlaylists, addVideoToPlaylist, createPlaylist } from "../api/playlistApi";
+
+// const CommentSection = () => {
+//   const { videoId } = useParams();
+//   const [video, setVideo] = useState(null);
+//   const [comments, setComments] = useState([]);
+//   const [newComment, setNewComment] = useState("");
+//   const [editingCommentId, setEditingCommentId] = useState(null);
+//   const [editText, setEditText] = useState("");
+//   const [currentUserId, setCurrentUserId] = useState(null);
+
+//   const [videoLiked, setVideoLiked] = useState(false);
+//   const [videoLikes, setVideoLikes] = useState(0);
+//   const [views, setViews] = useState(0);
+
+//   const [isSubscribed, setIsSubscribed] = useState(false);
+//   const [loadingSub, setLoadingSub] = useState(false);
+//   const [subscriberCount, setSubscriberCount] = useState(0);
+
+//   // Playlist state
+//   const [playlists, setPlaylists] = useState([]);
+//   const [selectedPlaylists, setSelectedPlaylists] = useState({});
+//   const [savedPlaylists, setSavedPlaylists] = useState({});
+//   const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
+//   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
+//   const [newPlaylistName, setNewPlaylistName] = useState("");
+//   const [confirmation, setConfirmation] = useState("");
+
+//   // Fetch current logged-in user
+//   useEffect(() => {
+//     const fetchMe = async () => {
+//       try {
+//         const res = await axiosInstance.get("/users/getcurrentuser");
+//         setCurrentUserId(res.data.data._id);
+//       } catch (err) {
+//         console.error("❌ Error fetching user:", err);
+//       }
+//     };
+//     fetchMe();
+//   }, []);
+
+//   // Fetch video + increment views
+//   useEffect(() => {
+//     if (!videoId) return;
+//     const fetchVideo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/videos/${videoId}`);
+//         const vidData = res.data.data;
+//         setVideo(vidData);
+//         setViews(vidData.views || 0);
+
+//         // Increment views
+//         await axiosInstance.patch(`/videos/views/${videoId}`);
+
+//         // Fetch video likes
+//         const likeRes = await axiosInstance.get(`/likes/count/v/${videoId}`);
+// setVideoLikes(likeRes.data.data.count || 0);
+
+//         // Check if current user liked this video
+//         const likedRes = await axiosInstance.get(`/likes/status/v/${videoId}`);
+// setVideoLiked(likedRes.data.data.liked || false);
+//       } catch (err) {
+//         console.error("❌ Error fetching video:", err);
+//       }
+//     };
+//     fetchVideo();
+//   }, [videoId]);
+
+//   // Subscribe logic
+//   useEffect(() => {
+//     if (!video?.owner?._id || !currentUserId) return;
+//     const fetchSubscriptionInfo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/subscriptions/c/${video.owner._id}`);
+//         const subs = res.data.data || [];
+//         const subscribed = subs.some((sub) => sub.subscriber._id === currentUserId);
+//         setIsSubscribed(subscribed);
+//         setSubscriberCount(subs.length);
+//       } catch (err) {
+//         console.error("❌ Error fetching subscription info:", err);
+//       }
+//     };
+//     fetchSubscriptionInfo();
+//   }, [video, currentUserId]);
+
+//   const handleToggleSub = async () => {
+//     if (!video?.owner?._id) return;
+//     setLoadingSub(true);
+//     try {
+//       await axiosInstance.post(`/subscriptions/toggle/${video.owner._id}`);
+//       setIsSubscribed(!isSubscribed);
+//       setSubscriberCount((prev) => (isSubscribed ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       console.error("❌ Error toggling subscription:", err);
+//     } finally {
+//       setLoadingSub(false);
+//     }
+//   };
+
+//   // Fetch comments
+//   useEffect(() => {
+//     if (!videoId) return;
+//     const fetchComments = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/comments/${videoId}`);
+//         const commentsData = res.data.data;
+
+//         // Fetch likes count for each comment
+//         const commentsWithLikes = await Promise.all(
+//   commentsData.map(async (c) => {
+//     try {
+//       const likeRes = await axiosInstance.get(`/likes/count/c/${c._id}`);
+//       const likedRes = await axiosInstance.get(`/likes/status/c/${c._id}`);
+//       return {
+//         ...c,
+//         likesCount: likeRes.data.data.count || 0,
+//         isLiked: likedRes.data.data.liked || false,
+//       };
+//     } catch {
+//       return { ...c, likesCount: 0, isLiked: false };
+//     }
+//   })
+// );
+
+
+//         setComments(commentsWithLikes);
+//       } catch (err) {
+//         console.error("❌ Error fetching comments:", err);
+//       }
+//     };
+//     fetchComments();
+//   }, [videoId]);
+
+//   // Video like handler
+//   const handleVideoLike = async () => {
+//       console.log("Like button clicked"); // ✅ check if this logs
+
+//     if (!currentUserId) return alert("❌ You must be logged in to like this video.");
+//     try {
+//       await toggleVideoLike(videoId);
+//       setVideoLiked((prev) => !prev);
+//       setVideoLikes((prev) => (videoLiked ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // Comment like handler
+//   const handleCommentLike = async (commentId) => {
+//     setComments((prev) =>
+//       prev.map((c) => {
+//         if (c._id === commentId) {
+//           const liked = !c.isLiked;
+//           return {
+//             ...c,
+//             isLiked: liked,
+//             likesCount: liked ? c.likesCount + 1 : c.likesCount - 1,
+//           };
+//         }
+//         return c;
+//       })
+//     );
+//     try {
+//       await toggleCommentLike(commentId);
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // Comment CRUD
+//   const handleAddComment = async () => {
+//     if (!newComment) return alert("Comment cannot be empty");
+//     try {
+//       const res = await axiosInstance.post(`/comments/${videoId}`, { comment: newComment });
+//       setComments((prev) => [
+//         { ...res.data.data, likesCount: 0, isLiked: false },
+//         ...prev,
+//       ]);
+//       setNewComment("");
+//     } catch (err) {
+//       console.error("❌ Error adding comment:", err);
+//     }
+//   };
+
+//   const handleEditClick = (comment) => {
+//     setEditingCommentId(comment._id);
+//     setEditText(comment.content);
+//   };
+
+//   const handleUpdateComment = async (id) => {
+//     try {
+//       const res = await axiosInstance.patch(`/comments/${id}`, { updatComment: editText });
+//       setComments((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
+//       setEditingCommentId(null);
+//       setEditText("");
+//     } catch (err) {
+//       console.error("❌ Error updating comment:", err);
+//     }
+//   };
+
+//   const handleDeleteComment = async (id) => {
+//     try {
+//       await axiosInstance.delete(`/comments/${id}`);
+//       setComments((prev) => prev.filter((c) => c._id !== id));
+//     } catch (err) {
+//       console.error("❌ Error deleting comment:", err);
+//     }
+//   };
+
+//   // Playlist functionality
+//   const fetchPlaylists = async () => {
+//     if (!currentUserId) return;
+//     try {
+//       const res = await getAllPlaylists(currentUserId);
+//       const pls = res.data || [];
+//       setPlaylists(pls);
+
+//       const initialSelected = {};
+//       const initialSaved = {};
+//       pls.forEach((pl) => {
+//         initialSelected[pl._id] = false;
+//         initialSaved[pl._id] = video?.videos?.includes(pl._id) || false;
+//       });
+//       setSelectedPlaylists(initialSelected);
+//       setSavedPlaylists(initialSaved);
+//     } catch (err) {
+//       console.error("Error fetching playlists:", err);
+//     }
+//   };
+
+//   const handleTogglePlaylist = (plId) => {
+//     setSelectedPlaylists((prev) => ({ ...prev, [plId]: !prev[plId] }));
+//   };
+
+//   const handleCreatePlaylist = async () => {
+//     if (!newPlaylistName.trim()) return;
+//     try {
+//       const res = await createPlaylist(currentUserId, newPlaylistName);
+//       const newPl = res.data.data;
+//       setPlaylists((prev) => [...prev, newPl]);
+//       setSelectedPlaylists((prev) => ({ ...prev, [newPl._id]: true }));
+//       setSavedPlaylists((prev) => ({ ...prev, [newPl._id]: false }));
+//       setNewPlaylistName("");
+//       setShowNewPlaylistInput(false);
+//     } catch (err) {
+//       console.error("Error creating playlist:", err);
+//     }
+//   };
+
+//   const handleSaveToPlaylists = async () => {
+//     const selectedIds = Object.keys(selectedPlaylists).filter(
+//       (id) => selectedPlaylists[id] && !savedPlaylists[id]
+//     );
+//     if (selectedIds.length === 0) {
+//       setConfirmation("Video already in selected playlist(s) ✅");
+//       return;
+//     }
+
+//     try {
+//       for (let plId of selectedIds) {
+//         await addVideoToPlaylist(videoId, plId);
+//       }
+
+//       const updatedSaved = { ...savedPlaylists };
+//       selectedIds.forEach((id) => (updatedSaved[id] = true));
+//       setSavedPlaylists(updatedSaved);
+
+//       setConfirmation(`Video saved to ${selectedIds.length} playlist(s) successfully! ✅`);
+//       setShowPlaylistDropdown(false);
+//     } catch (err) {
+//       console.error("Error saving video to playlists:", err);
+//       setConfirmation("❌ Error saving video to playlist");
+//     }
+//   };
+
+//   const handleOpenPlaylistDropdown = () => {
+//     fetchPlaylists();
+//     setShowPlaylistDropdown(true);
+//     setConfirmation("");
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto p-4">
+//       {/* Video */}
+//       {video ? (
+//         <div className="relative">
+//           <video src={video.videoUrl || video.videofile} controls className="w-full rounded-lg shadow-md" />
+//           <div className="flex items-center gap-4 mt-2">
+//             <button
+//               onClick={handleVideoLike}
+//               className={`flex items-center gap-1 px-3 py-1 rounded-lg text-white ${
+//                 videoLiked ? "bg-red-600" : "bg-blue-600"
+//               }`}
+//             >
+//               <FaThumbsUp />
+//               {videoLikes}
+//             </button>
+//             <span className="text-gray-500">{views} views</span>
+//           </div>
+//         </div>
+//       ) : (
+//         <p className="text-center">Loading video...</p>
+//       )}
+
+//       {/* Video Info & Playlist */}
+//       {video && (
+//         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+//           <div className="flex items-center gap-3">
+//             <button
+//               onClick={handleToggleSub}
+//               disabled={loadingSub}
+//               className={`px-4 py-2 rounded-lg text-white ${
+//                 isSubscribed ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+//               }`}
+//             >
+//               {loadingSub ? "Processing..." : isSubscribed ? "Unsubscribe" : "Subscribe"}
+//             </button>
+
+//             {/* Playlist Dropdown */}
+//             <div className="relative">
+//               <button
+//                 onClick={handleOpenPlaylistDropdown}
+//                 className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+//               >
+//                 Save to Playlist
+//               </button>
+
+//               {showPlaylistDropdown && (
+//                 <div className="absolute top-full left-0 mt-2 w-64 bg-white border rounded shadow-lg p-3 z-10">
+//                   {playlists.map((pl) => (
+//                     <div key={pl._id} className="flex items-center gap-2 mb-1">
+//                       <input
+//                         type="checkbox"
+//                         checked={selectedPlaylists[pl._id] || false}
+//                         disabled={savedPlaylists[pl._id]}
+//                         onChange={() => handleTogglePlaylist(pl._id)}
+//                       />
+//                       <span>
+//                         {pl.name} {savedPlaylists[pl._id] && "✅"}
+//                       </span>
+//                     </div>
+//                   ))}
+
+//                   {showNewPlaylistInput ? (
+//                     <div className="flex gap-2 mt-2">
+//                       <input
+//                         type="text"
+//                         placeholder="New playlist name"
+//                         value={newPlaylistName}
+//                         onChange={(e) => setNewPlaylistName(e.target.value)}
+//                         className="border rounded px-2 py-1 flex-1"
+//                       />
+//                       <button
+//                         onClick={handleCreatePlaylist}
+//                         className="bg-blue-600 text-white px-2 py-1 rounded"
+//                       >
+//                         Create
+//                       </button>
+//                     </div>
+//                   ) : (
+//                     <button
+//                       onClick={() => setShowNewPlaylistInput(true)}
+//                       className="mt-2 text-green-600 flex items-center gap-1 hover:text-green-800"
+//                     >
+//                       + New Playlist
+//                     </button>
+//                   )}
+
+//                   <button
+//                     onClick={handleSaveToPlaylists}
+//                     className="mt-2 w-full bg-green-600 text-white px-3 py-1 rounded"
+//                   >
+//                     Save
+//                   </button>
+
+//                   {confirmation && <p className="text-sm text-green-700 mt-2">{confirmation}</p>}
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Add Comment */}
+//       <div className="mt-6">
+//         <h3 className="text-lg font-semibold mb-2">Add Comment</h3>
+//         <textarea
+//           className="w-full border rounded-lg p-2"
+//           value={newComment}
+//           onChange={(e) => setNewComment(e.target.value)}
+//           placeholder="Write your comment..."
+//         />
+//         <button onClick={handleAddComment} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
+//           Submit
+//         </button>
+//       </div>
+
+//       {/* Show Comments */}
+//       <div className="mt-6">
+//         <h3 className="text-lg font-semibold mb-2">Comments</h3>
+//         {comments.length === 0 ? (
+//           <p className="text-gray-500">No comments yet.</p>
+//         ) : (
+//           comments.map((c) => (
+//             <div key={c._id} className="border-b py-2 flex flex-col gap-1">
+//               {editingCommentId === c._id ? (
+//                 <>
+//                   <textarea
+//                     className="w-full border rounded-lg p-2"
+//                     value={editText}
+//                     onChange={(e) => setEditText(e.target.value)}
+//                   />
+//                   <div className="flex gap-2 mt-1">
+//                     <button
+//                       onClick={() => handleUpdateComment(c._id)}
+//                       className="px-3 py-1 bg-green-600 text-white rounded"
+//                     >
+//                       Save
+//                     </button>
+//                     <button
+//                       onClick={() => setEditingCommentId(null)}
+//                       className="px-3 py-1 bg-gray-400 text-white rounded"
+//                     >
+//                       Cancel
+//                     </button>
+//                   </div>
+//                 </>
+//               ) : (
+//                 <>
+//                   <p>{c.content}</p>
+//                   <small className="text-gray-500">By: {c.owner?.username}</small>
+
+//                   <div className="flex items-center gap-3 mt-1">
+//                     <button
+//                       onClick={() => handleCommentLike(c._id)}
+//                       className={`flex items-center gap-1 px-2 py-1 rounded text-white ${
+//                         c.isLiked ? "bg-red-600" : "bg-blue-600"
+//                       }`}
+//                     >
+//                       <FaThumbsUp />
+//                       {c.likesCount}
+//                     </button>
+//                   </div>
+
+//                   {c.owner?._id === currentUserId && (
+//                     <div className="flex gap-2 mt-1">
+//                       <button
+//                         onClick={() => handleEditClick(c)}
+//                         className="px-3 py-1 bg-yellow-500 text-white rounded"
+//                       >
+//                         Edit
+//                       </button>
+//                       <button
+//                         onClick={() => handleDeleteComment(c._id)}
+//                         className="px-3 py-1 bg-red-600 text-white rounded"
+//                       >
+//                         Delete
+//                       </button>
+//                     </div>
+//                   )}
+//                 </>
+//               )}
+//             </div>
+//           ))
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default CommentSection;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import axiosInstance from "../utils/axiosInstance";
+// import { FaThumbsUp, FaPlus } from "react-icons/fa";
+// import { toggleVideoLike, toggleCommentLike } from "../api/likeApi";
+// import { getAllPlaylists, addVideoToPlaylist, createPlaylist } from "../api/playlistApi";
+
+// const CommentSection = () => {
+//   const { videoId } = useParams();
+//   const [video, setVideo] = useState(null);
+//   const [comments, setComments] = useState([]);
+//   const [newComment, setNewComment] = useState("");
+//   const [editingCommentId, setEditingCommentId] = useState(null);
+//   const [editText, setEditText] = useState("");
+//   const [currentUserId, setCurrentUserId] = useState(null);
+
+//   const [videoLiked, setVideoLiked] = useState(false);
+//   const [videoLikes, setVideoLikes] = useState(0);
+//   const [views, setViews] = useState(0);
+
+//   const [isSubscribed, setIsSubscribed] = useState(false);
+//   const [loadingSub, setLoadingSub] = useState(false);
+//   const [subscriberCount, setSubscriberCount] = useState(0);
+
+//   const [playlists, setPlaylists] = useState([]);
+//   const [selectedPlaylists, setSelectedPlaylists] = useState({});
+//   const [savedPlaylists, setSavedPlaylists] = useState({});
+//   const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
+//   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
+//   const [newPlaylistName, setNewPlaylistName] = useState("");
+//   const [confirmation, setConfirmation] = useState("");
+
+//   // Fetch current user
+//   useEffect(() => {
+//     const fetchMe = async () => {
+//       try {
+//         const res = await axiosInstance.get("/users/getcurrentuser");
+//         setCurrentUserId(res.data.data._id);
+//       } catch (err) {
+//         console.error("❌ Error fetching user:", err);
+//       }
+//     };
+//     fetchMe();
+//   }, []);
+
+//   // Fetch video
+//   useEffect(() => {
+//     if (!videoId) return;
+//     const fetchVideo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/videos/${videoId}`);
+//         const vidData = res.data.data;
+//         setVideo(vidData);
+//         setViews(vidData.views || 0);
+
+//         await axiosInstance.patch(`/videos/views/${videoId}`);
+//         const likeRes = await axiosInstance.get(`/likes/count/v/${videoId}`);
+//         setVideoLikes(likeRes.data.data.count || 0);
+//         const likedRes = await axiosInstance.get(`/likes/status/v/${videoId}`);
+//         setVideoLiked(likedRes.data.data.liked || false);
+//       } catch (err) {
+//         console.error("❌ Error fetching video:", err);
+//       }
+//     };
+//     fetchVideo();
+//   }, [videoId]);
+
+//   // Subscription
+//   useEffect(() => {
+//     if (!video?.owner?._id || !currentUserId) return;
+//     const fetchSubscriptionInfo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/subscriptions/c/${video.owner._id}`);
+//         const subs = res.data.data || [];
+//         const subscribed = subs.some((s) => s.subscriber._id === currentUserId);
+//         setIsSubscribed(subscribed);
+//         setSubscriberCount(subs.length);
+//       } catch (err) {
+//         console.error("❌ Error fetching subs:", err);
+//       }
+//     };
+//     fetchSubscriptionInfo();
+//   }, [video, currentUserId]);
+
+//   const handleToggleSub = async () => {
+//     if (!video?.owner?._id) return;
+//     setLoadingSub(true);
+//     try {
+//       await axiosInstance.post(`/subscriptions/toggle/${video.owner._id}`);
+//       setIsSubscribed(!isSubscribed);
+//       setSubscriberCount((p) => (isSubscribed ? p - 1 : p + 1));
+//     } catch (err) {
+//       console.error("❌ Error toggling sub:", err);
+//     } finally {
+//       setLoadingSub(false);
+//     }
+//   };
+
+//   // Video like
+//   const handleVideoLike = async () => {
+//     if (!currentUserId) return alert("❌ Login to like.");
+//     try {
+//       await toggleVideoLike(videoId);
+//       setVideoLiked((prev) => !prev);
+//       setVideoLikes((prev) => (videoLiked ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+//   // Fetch comments
+// useEffect(() => {
+//   if (!videoId) return;
+//   const fetchComments = async () => {
+//     try {
+//       const res = await axiosInstance.get(`/comments/${videoId}`);
+//       const commentsData = res.data.data;
+
+//       setComments(commentsData);
+//     } catch (err) {
+//       console.error("❌ Error fetching comments:", err);
+//     }
+//   };
+//   fetchComments();
+// }, [videoId]);
+
+
+//   // Playlist handling (same as yours, not repeating for brevity)...
+
+//   return (
+//     <div className="max-w-4xl mx-auto p-4">
+//       {video ? (
+//         <>
+//           {/* Video Player */}
+//           <video
+//             src={video.videoUrl || video.videofile}
+//             controls
+//             className="w-full rounded-lg shadow-lg"
+//           />
+
+//           {/* Title */}
+//           <h1 className="text-2xl font-semibold mt-3">{video.title}</h1>
+
+//           {/* Actions Row (like YT) */}
+//           <div className="flex flex-wrap items-center justify-between border-b py-3 mt-2">
+//             {/* Views */}
+//             <span className="text-gray-600">{views} views</span>
+
+//             {/* Right side actions */}
+//             <div className="flex flex-wrap items-center gap-3">
+//               {/* Like */}
+//               <button
+//                 onClick={handleVideoLike}
+//                 className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium ${
+//                   videoLiked
+//                     ? "bg-red-600 text-white"
+//                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+//                 }`}
+//               >
+//                 <FaThumbsUp /> {videoLikes}
+//               </button>
+
+//               {/* Subscribe */}
+//               <button
+//                 onClick={handleToggleSub}
+//                 disabled={loadingSub}
+//                 className={`px-4 py-2 rounded-full font-medium ${
+//                   isSubscribed
+//                     ? "bg-red-600 text-white"
+//                     : "bg-blue-600 text-white hover:bg-blue-700"
+//                 }`}
+//               >
+//                 {loadingSub
+//                   ? "Processing..."
+//                   : isSubscribed
+//                   ? `Subscribed (${subscriberCount})`
+//                   : `Subscribe (${subscriberCount})`}
+//               </button>
+
+//               {/* Playlist */}
+//               <div className="relative">
+//                 <button
+//                   onClick={() => setShowPlaylistDropdown((s) => !s)}
+//                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+//                 >
+//                   <FaPlus /> Save
+//                 </button>
+//                 {showPlaylistDropdown && (
+//                   <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg p-3 z-10">
+//                     {/* playlist list / create UI (same as before) */}
+//                     {confirmation && (
+//                       <p className="text-sm text-green-700 mt-2">{confirmation}</p>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Add Comment */}
+//           <div className="mt-6">
+//             <h3 className="text-lg font-semibold mb-2">Add a Comment</h3>
+//             <textarea
+//               className="w-full border rounded-lg p-2"
+//               value={newComment}
+//               onChange={(e) => setNewComment(e.target.value)}
+//               placeholder="Write your comment..."
+//             />
+//             <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
+//               Comment
+//             </button>
+//           </div>
+
+//           {/* Comments */}
+//           <div className="mt-6">
+//             <h3 className="text-lg font-semibold mb-3">
+//               {comments.length} Comments
+//             </h3>
+//             {comments.map((c) => (
+//               <div key={c._id} className="border-b py-3">
+//                 <p className="font-medium">{c.owner?.username}</p>
+//                 <p>{c.content}</p>
+//                 <div className="flex gap-3 mt-1">
+//                   <button
+//                     onClick={() => handleCommentLike(c._id)}
+//                     className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+//                       c.isLiked
+//                         ? "bg-red-600 text-white"
+//                         : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+//                     }`}
+//                   >
+//                     <FaThumbsUp /> {c.likesCount}
+//                   </button>
+//                   {c.owner?._id === currentUserId && (
+//                     <>
+//                       <button className="text-yellow-600 text-sm">Edit</button>
+//                       <button className="text-red-600 text-sm">Delete</button>
+//                     </>
+//                   )}
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </>
+//       ) : (
+//         <p className="text-center">Loading video...</p>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CommentSection;
+
+
+
+
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import { FaThumbsUp } from "react-icons/fa";
+import { FaThumbsUp, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toggleVideoLike, toggleCommentLike } from "../api/likeApi";
 import { getAllPlaylists, addVideoToPlaylist, createPlaylist } from "../api/playlistApi";
 
@@ -2999,8 +3746,6 @@ const CommentSection = () => {
   const [video, setVideo] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editText, setEditText] = useState("");
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const [videoLiked, setVideoLiked] = useState(false);
@@ -3011,7 +3756,6 @@ const CommentSection = () => {
   const [loadingSub, setLoadingSub] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState(0);
 
-  // Playlist state
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylists, setSelectedPlaylists] = useState({});
   const [savedPlaylists, setSavedPlaylists] = useState({});
@@ -3020,7 +3764,14 @@ const CommentSection = () => {
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [confirmation, setConfirmation] = useState("");
 
-  // Fetch current logged-in user
+    const userId = localStorage.getItem("userId"); // 👈 get saved userId
+
+
+  // Format views (e.g., 12,345 views)
+  const formatViews = (num) =>
+    num >= 1000 ? `${(num / 1000).toFixed(1)}K` : num;
+
+  // Fetch current user
   useEffect(() => {
     const fetchMe = async () => {
       try {
@@ -3033,7 +3784,7 @@ const CommentSection = () => {
     fetchMe();
   }, []);
 
-  // Fetch video + increment views
+  // Fetch video
   useEffect(() => {
     if (!videoId) return;
     const fetchVideo = async () => {
@@ -3043,16 +3794,11 @@ const CommentSection = () => {
         setVideo(vidData);
         setViews(vidData.views || 0);
 
-        // Increment views
         await axiosInstance.patch(`/videos/views/${videoId}`);
-
-        // Fetch video likes
         const likeRes = await axiosInstance.get(`/likes/count/v/${videoId}`);
-setVideoLikes(likeRes.data.data.count || 0);
-
-        // Check if current user liked this video
+        setVideoLikes(likeRes.data.data.count || 0);
         const likedRes = await axiosInstance.get(`/likes/status/v/${videoId}`);
-setVideoLiked(likedRes.data.data.liked || false);
+        setVideoLiked(likedRes.data.data.liked || false);
       } catch (err) {
         console.error("❌ Error fetching video:", err);
       }
@@ -3060,36 +3806,22 @@ setVideoLiked(likedRes.data.data.liked || false);
     fetchVideo();
   }, [videoId]);
 
-  // Subscribe logic
+  // Subscription
   useEffect(() => {
     if (!video?.owner?._id || !currentUserId) return;
     const fetchSubscriptionInfo = async () => {
       try {
         const res = await axiosInstance.get(`/subscriptions/c/${video.owner._id}`);
         const subs = res.data.data || [];
-        const subscribed = subs.some((sub) => sub.subscriber._id === currentUserId);
+        const subscribed = subs.some((s) => s.subscriber._id === currentUserId);
         setIsSubscribed(subscribed);
         setSubscriberCount(subs.length);
       } catch (err) {
-        console.error("❌ Error fetching subscription info:", err);
+        console.error("❌ Error fetching subs:", err);
       }
     };
     fetchSubscriptionInfo();
   }, [video, currentUserId]);
-
-  const handleToggleSub = async () => {
-    if (!video?.owner?._id) return;
-    setLoadingSub(true);
-    try {
-      await axiosInstance.post(`/subscriptions/toggle/${video.owner._id}`);
-      setIsSubscribed(!isSubscribed);
-      setSubscriberCount((prev) => (isSubscribed ? prev - 1 : prev + 1));
-    } catch (err) {
-      console.error("❌ Error toggling subscription:", err);
-    } finally {
-      setLoadingSub(false);
-    }
-  };
 
   // Fetch comments
   useEffect(() => {
@@ -3097,27 +3829,7 @@ setVideoLiked(likedRes.data.data.liked || false);
     const fetchComments = async () => {
       try {
         const res = await axiosInstance.get(`/comments/${videoId}`);
-        const commentsData = res.data.data;
-
-        // Fetch likes count for each comment
-        const commentsWithLikes = await Promise.all(
-  commentsData.map(async (c) => {
-    try {
-      const likeRes = await axiosInstance.get(`/likes/count/c/${c._id}`);
-      const likedRes = await axiosInstance.get(`/likes/status/c/${c._id}`);
-      return {
-        ...c,
-        likesCount: likeRes.data.data.count || 0,
-        isLiked: likedRes.data.data.liked || false,
-      };
-    } catch {
-      return { ...c, likesCount: 0, isLiked: false };
-    }
-  })
-);
-
-
-        setComments(commentsWithLikes);
+        setComments(res.data.data || []);
       } catch (err) {
         console.error("❌ Error fetching comments:", err);
       }
@@ -3125,11 +3837,56 @@ setVideoLiked(likedRes.data.data.liked || false);
     fetchComments();
   }, [videoId]);
 
-  // Video like handler
-  const handleVideoLike = async () => {
-      console.log("Like button clicked"); // ✅ check if this logs
+  // Fetch playlists
+ useEffect(() => {
+    const fetchPlaylists = async () => {
+      try {
+        if (!userId) {
+          console.error("No userId found in localStorage");
+          return;
+        }
 
-    if (!currentUserId) return alert("❌ You must be logged in to like this video.");
+        const res = await getAllPlaylists(userId);
+        setPlaylists(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching playlists:", error);
+      }
+    };
+
+    fetchPlaylists();
+  }, [userId]);
+
+  // Handlers
+  const handleToggleSub = async () => {
+    if (!video?.owner?._id) return;
+    setLoadingSub(true);
+    try {
+      await axiosInstance.post(`/subscriptions/toggle/${video.owner._id}`);
+      setIsSubscribed(!isSubscribed);
+      setSubscriberCount((p) => (isSubscribed ? p - 1 : p + 1));
+    } catch (err) {
+      console.error("❌ Error toggling sub:", err);
+    } finally {
+      setLoadingSub(false);
+    }
+  };
+
+
+    // ➕ Add comment
+  const handleAddComment = async () => {
+    if (!newComment) return alert("Comment cannot be empty");
+    try {
+      const res = await axiosInstance.post(`/comments/${videoId}`, {
+        comment: newComment,
+      });
+      setComments((prev) => [res.data.data, ...prev]);
+      setNewComment("");
+    } catch (err) {
+      console.error("❌ Error adding comment:", err);
+    }
+  };
+  const handleVideoLike = async () => {
+    if (!currentUserId) return alert("❌ Login to like.");
     try {
       await toggleVideoLike(videoId);
       setVideoLiked((prev) => !prev);
@@ -3139,327 +3896,654 @@ setVideoLiked(likedRes.data.data.liked || false);
     }
   };
 
-  // Comment like handler
-  const handleCommentLike = async (commentId) => {
-    setComments((prev) =>
-      prev.map((c) => {
-        if (c._id === commentId) {
-          const liked = !c.isLiked;
-          return {
-            ...c,
-            isLiked: liked,
-            likesCount: liked ? c.likesCount + 1 : c.likesCount - 1,
-          };
-        }
-        return c;
-      })
-    );
-    try {
-      await toggleCommentLike(commentId);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Comment CRUD
-  const handleAddComment = async () => {
-    if (!newComment) return alert("Comment cannot be empty");
-    try {
-      const res = await axiosInstance.post(`/comments/${videoId}`, { comment: newComment });
-      setComments((prev) => [
-        { ...res.data.data, likesCount: 0, isLiked: false },
-        ...prev,
-      ]);
-      setNewComment("");
-    } catch (err) {
-      console.error("❌ Error adding comment:", err);
-    }
-  };
-
-  const handleEditClick = (comment) => {
-    setEditingCommentId(comment._id);
-    setEditText(comment.content);
-  };
-
-  const handleUpdateComment = async (id) => {
-    try {
-      const res = await axiosInstance.patch(`/comments/${id}`, { updatComment: editText });
-      setComments((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
-      setEditingCommentId(null);
-      setEditText("");
-    } catch (err) {
-      console.error("❌ Error updating comment:", err);
-    }
-  };
-
-  const handleDeleteComment = async (id) => {
-    try {
-      await axiosInstance.delete(`/comments/${id}`);
-      setComments((prev) => prev.filter((c) => c._id !== id));
-    } catch (err) {
-      console.error("❌ Error deleting comment:", err);
-    }
-  };
-
-  // Playlist functionality
-  const fetchPlaylists = async () => {
-    if (!currentUserId) return;
-    try {
-      const res = await getAllPlaylists(currentUserId);
-      const pls = res.data || [];
-      setPlaylists(pls);
-
-      const initialSelected = {};
-      const initialSaved = {};
-      pls.forEach((pl) => {
-        initialSelected[pl._id] = false;
-        initialSaved[pl._id] = video?.videos?.includes(pl._id) || false;
-      });
-      setSelectedPlaylists(initialSelected);
-      setSavedPlaylists(initialSaved);
-    } catch (err) {
-      console.error("Error fetching playlists:", err);
-    }
-  };
-
-  const handleTogglePlaylist = (plId) => {
-    setSelectedPlaylists((prev) => ({ ...prev, [plId]: !prev[plId] }));
-  };
-
-  const handleCreatePlaylist = async () => {
-    if (!newPlaylistName.trim()) return;
-    try {
-      const res = await createPlaylist(currentUserId, newPlaylistName);
-      const newPl = res.data.data;
-      setPlaylists((prev) => [...prev, newPl]);
-      setSelectedPlaylists((prev) => ({ ...prev, [newPl._id]: true }));
-      setSavedPlaylists((prev) => ({ ...prev, [newPl._id]: false }));
-      setNewPlaylistName("");
-      setShowNewPlaylistInput(false);
-    } catch (err) {
-      console.error("Error creating playlist:", err);
-    }
+  const handleTogglePlaylist = (playlistId) => {
+    setSelectedPlaylists((prev) => ({
+      ...prev,
+      [playlistId]: !prev[playlistId],
+    }));
   };
 
   const handleSaveToPlaylists = async () => {
-    const selectedIds = Object.keys(selectedPlaylists).filter(
-      (id) => selectedPlaylists[id] && !savedPlaylists[id]
-    );
-    if (selectedIds.length === 0) {
-      setConfirmation("Video already in selected playlist(s) ✅");
-      return;
-    }
-
     try {
-      for (let plId of selectedIds) {
-        await addVideoToPlaylist(videoId, plId);
+      for (const [playlistId, selected] of Object.entries(selectedPlaylists)) {
+        if (selected && !savedPlaylists[playlistId]) {
+          await addVideoToPlaylist(playlistId, videoId);
+          setSavedPlaylists((prev) => ({ ...prev, [playlistId]: true }));
+        }
+      }
+      setConfirmation("✅ Saved to playlists!");
+    } catch (err) {
+      console.error("❌ Error saving to playlist:", err);
+    }
+  };
+
+  const handleCreatePlaylist = async () => {
+    try {
+      if (!newPlaylistName.trim()) {
+        alert("Please enter a playlist name");
+        return;
       }
 
-      const updatedSaved = { ...savedPlaylists };
-      selectedIds.forEach((id) => (updatedSaved[id] = true));
-      setSavedPlaylists(updatedSaved);
-
-      setConfirmation(`Video saved to ${selectedIds.length} playlist(s) successfully! ✅`);
-      setShowPlaylistDropdown(false);
-    } catch (err) {
-      console.error("Error saving video to playlists:", err);
-      setConfirmation("❌ Error saving video to playlist");
+      await createPlaylist(userId, newPlaylistName.trim());
+      alert("Playlist created successfully!");
+      setNewPlaylistName(""); // reset input field
+    } catch (error) {
+      console.error("❌ Error creating playlist:", error);
     }
   };
 
-  const handleOpenPlaylistDropdown = () => {
-    fetchPlaylists();
-    setShowPlaylistDropdown(true);
-    setConfirmation("");
-  };
-
+  
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Video */}
       {video ? (
-        <div className="relative">
-          <video src={video.videoUrl || video.videofile} controls className="w-full rounded-lg shadow-md" />
-          <div className="flex items-center gap-4 mt-2">
-            <button
-              onClick={handleVideoLike}
-              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-white ${
-                videoLiked ? "bg-red-600" : "bg-blue-600"
-              }`}
-            >
-              <FaThumbsUp />
-              {videoLikes}
-            </button>
-            <span className="text-gray-500">{views} views</span>
-          </div>
-        </div>
-      ) : (
-        <p className="text-center">Loading video...</p>
-      )}
+        <>
+          {/* Video Player */}
+          <video
+            src={video.videoUrl || video.videofile}
+            controls
+            autoPlay
+            className="w-full rounded-lg shadow-lg"
+          />
 
-      {/* Video Info & Playlist */}
-      {video && (
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleToggleSub}
-              disabled={loadingSub}
-              className={`px-4 py-2 rounded-lg text-white ${
-                isSubscribed ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {loadingSub ? "Processing..." : isSubscribed ? "Unsubscribe" : "Subscribe"}
-            </button>
+          {/* Title */}
+          <h1 className="text-2xl font-semibold mt-3">{video.title}</h1>
 
-            {/* Playlist Dropdown */}
-            <div className="relative">
+          {/* Actions Row */}
+          <div className="flex flex-wrap items-center justify-between border-b py-3 mt-2">
+            <span className="text-gray-600">
+              {formatViews(views)} views •{" "}
+              {new Date(video.createdAt).toLocaleDateString()}
+            </span>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Like */}
               <button
-                onClick={handleOpenPlaylistDropdown}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                onClick={handleVideoLike}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium ${
+                  videoLiked
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
               >
-                Save to Playlist
+                <FaThumbsUp /> {videoLikes}
               </button>
 
-              {showPlaylistDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border rounded shadow-lg p-3 z-10">
-                  {playlists.map((pl) => (
-                    <div key={pl._id} className="flex items-center gap-2 mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedPlaylists[pl._id] || false}
-                        disabled={savedPlaylists[pl._id]}
-                        onChange={() => handleTogglePlaylist(pl._id)}
-                      />
-                      <span>
-                        {pl.name} {savedPlaylists[pl._id] && "✅"}
-                      </span>
-                    </div>
-                  ))}
+              {/* Subscribe */}
+              <button
+                onClick={handleToggleSub}
+                disabled={loadingSub}
+                className={`px-4 py-2 rounded-full font-medium ${
+                  isSubscribed
+                    ? "bg-red-600 text-white"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {loadingSub
+                  ? "Processing..."
+                  : isSubscribed
+                  ? `Subscribed (${subscriberCount})`
+                  : `Subscribe (${subscriberCount})`}
+              </button>
 
-                  {showNewPlaylistInput ? (
-                    <div className="flex gap-2 mt-2">
-                      <input
-                        type="text"
-                        placeholder="New playlist name"
-                        value={newPlaylistName}
-                        onChange={(e) => setNewPlaylistName(e.target.value)}
-                        className="border rounded px-2 py-1 flex-1"
-                      />
-                      <button
-                        onClick={handleCreatePlaylist}
-                        className="bg-blue-600 text-white px-2 py-1 rounded"
-                      >
-                        Create
-                      </button>
-                    </div>
-                  ) : (
+              {/* Playlist */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowPlaylistDropdown((s) => !s)}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                >
+                  <FaPlus /> Save
+                </button>
+                {showPlaylistDropdown && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white border rounded shadow-lg p-3 z-10">
+                    <h4 className="font-semibold mb-2">Your Playlists</h4>
+                    {playlists.length > 0 ? (
+                      playlists.map((pl) => (
+                        <label key={pl._id} className="flex items-center gap-2 py-1">
+                          <input
+                            type="checkbox"
+                            checked={!!selectedPlaylists[pl._id]}
+                            onChange={() => handleTogglePlaylist(pl._id)}
+                          />
+                          <span>{pl.name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">No playlists yet</p>
+                    )}
+
                     <button
-                      onClick={() => setShowNewPlaylistInput(true)}
-                      className="mt-2 text-green-600 flex items-center gap-1 hover:text-green-800"
+                      onClick={handleSaveToPlaylists}
+                      className="mt-3 w-full bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
                     >
-                      + New Playlist
+                      Save
                     </button>
-                  )}
 
-                  <button
-                    onClick={handleSaveToPlaylists}
-                    className="mt-2 w-full bg-green-600 text-white px-3 py-1 rounded"
-                  >
-                    Save
-                  </button>
+                    {showNewPlaylistInput ? (
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          value={newPlaylistName}
+                          onChange={(e) => setNewPlaylistName(e.target.value)}
+                          placeholder="New playlist name"
+                          className="border w-full p-1 rounded"
+                        />
+                        <button
+                          onClick={handleCreatePlaylist}
+                          className="mt-2 w-full bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+                        >
+                          Create
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setShowNewPlaylistInput(true)}
+                        className="mt-3 w-full text-blue-600 text-sm"
+                      >
+                        + New Playlist
+                      </button>
+                    )}
 
-                  {confirmation && <p className="text-sm text-green-700 mt-2">{confirmation}</p>}
-                </div>
-              )}
+                    {confirmation && (
+                      <p className="text-sm text-green-700 mt-2">{confirmation}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Add Comment */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">Add Comment</h3>
-        <textarea
+          {/* Add Comment */}
+<div className="mt-6">
+     <h3 className="text-lg font-semibold mb-2">Add Comment</h3>
+      <textarea
           className="w-full border rounded-lg p-2"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write your comment..."
         />
-        <button onClick={handleAddComment} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
+        <button
+          onClick={handleAddComment}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
+        >
           Submit
         </button>
       </div>
 
-      {/* Show Comments */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">Comments</h3>
-        {comments.length === 0 ? (
-          <p className="text-gray-500">No comments yet.</p>
-        ) : (
-          comments.map((c) => (
-            <div key={c._id} className="border-b py-2 flex flex-col gap-1">
-              {editingCommentId === c._id ? (
-                <>
-                  <textarea
-                    className="w-full border rounded-lg p-2"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                  />
-                  <div className="flex gap-2 mt-1">
-                    <button
-                      onClick={() => handleUpdateComment(c._id)}
-                      className="px-3 py-1 bg-green-600 text-white rounded"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingCommentId(null)}
-                      className="px-3 py-1 bg-gray-400 text-white rounded"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
+          {/* Comments */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-3">
+              {comments.length} Comments
+            </h3>
+            {comments.length === 0 ? (
+              <p className="text-gray-500">No comments yet. Be the first!</p>
+            ) : (
+              comments.map((c) => (
+                <div key={c._id} className="border-b py-3">
+                  <p className="font-medium">{c.owner?.username}</p>
                   <p>{c.content}</p>
-                  <small className="text-gray-500">By: {c.owner?.username}</small>
+                  <div className="flex gap-3 mt-2">
+                   <button
+  onClick={async () => {
+    try {
+      await toggleCommentLike(c._id);
 
-                  <div className="flex items-center gap-3 mt-1">
-                    <button
-                      onClick={() => handleCommentLike(c._id)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded text-white ${
-                        c.isLiked ? "bg-red-600" : "bg-blue-600"
-                      }`}
-                    >
-                      <FaThumbsUp />
-                      {c.likesCount}
-                    </button>
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment._id === c._id) {
+            const currentCount = Number(comment.likesCount) || 0; // ✅ always a number
+            return {
+              ...comment,
+              isLiked: !comment.isLiked,
+              likesCount: comment.isLiked
+                ? currentCount - 1
+                : currentCount + 1,
+            };
+          }
+          return comment;
+        })
+      );
+    } catch (err) {
+      console.error("❌ Error toggling comment like:", err);
+    }
+  }}
+  className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+    c.isLiked
+      ? "bg-red-600 text-white"
+      : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+  }`}
+>
+  <FaThumbsUp /> {Number(c.likesCount) || 0}
+</button>
+
+                    {c.owner?._id === currentUserId && (
+                      <>
+                        <button className="flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm hover:bg-yellow-600">
+                          <FaEdit /> Edit
+                        </button>
+                        <button className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-full text-sm hover:bg-red-600">
+                          <FaTrash /> Delete
+                        </button>
+                      </>
+                    )}
                   </div>
-
-                  {c.owner?._id === currentUserId && (
-                    <div className="flex gap-2 mt-1">
-                      <button
-                        onClick={() => handleEditClick(c)}
-                        className="px-3 py-1 bg-yellow-500 text-white rounded"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteComment(c._id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="text-center">Loading video...</p>
+      )}
     </div>
   );
 };
 
 export default CommentSection;
+
+
+
+
+
+
+// import { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import axiosInstance from "../utils/axiosInstance";
+// import { FaThumbsUp, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+// import { toggleVideoLike, toggleCommentLike } from "../api/likeApi";
+// import { getAllPlaylists, addVideoToPlaylist, createPlaylist } from "../api/playlistApi";
+
+// const CommentSection = () => {
+//   const { videoId } = useParams();
+//   const [video, setVideo] = useState(null);
+//   const [comments, setComments] = useState([]);
+//   const [newComment, setNewComment] = useState("");
+//   const [currentUserId, setCurrentUserId] = useState(null);
+
+//   const [videoLiked, setVideoLiked] = useState(false);
+//   const [videoLikes, setVideoLikes] = useState(0);
+//   const [views, setViews] = useState(0);
+
+//   const [isSubscribed, setIsSubscribed] = useState(false);
+//   const [loadingSub, setLoadingSub] = useState(false);
+//   const [subscriberCount, setSubscriberCount] = useState(0);
+
+//   const [playlists, setPlaylists] = useState([]);
+//   const [selectedPlaylists, setSelectedPlaylists] = useState({});
+//   const [savedPlaylists, setSavedPlaylists] = useState({});
+//   const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
+//   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
+//   const [newPlaylistName, setNewPlaylistName] = useState("");
+//   const [confirmation, setConfirmation] = useState("");
+
+//   const userId = localStorage.getItem("userId");
+
+//   // Format views
+//   const formatViews = (num) =>
+//     num >= 1000 ? `${(num / 1000).toFixed(1)}K` : num;
+
+//   // Fetch current user
+//   useEffect(() => {
+//     const fetchMe = async () => {
+//       try {
+//         const res = await axiosInstance.get("/users/getcurrentuser");
+//         setCurrentUserId(res.data.data._id);
+//       } catch (err) {
+//         console.error("❌ Error fetching user:", err);
+//       }
+//     };
+//     fetchMe();
+//   }, []);
+
+//   // Fetch video
+//   useEffect(() => {
+//     if (!videoId) return;
+//     const fetchVideo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/videos/${videoId}`);
+//         const vidData = res.data.data;
+//         setVideo(vidData);
+//         setViews(vidData.views || 0);
+
+//         await axiosInstance.patch(`/videos/views/${videoId}`);
+//         const likeRes = await axiosInstance.get(`/likes/count/v/${videoId}`);
+//         setVideoLikes(likeRes.data.data.count || 0);
+//         const likedRes = await axiosInstance.get(`/likes/status/v/${videoId}`);
+//         setVideoLiked(likedRes.data.data.liked || false);
+//       } catch (err) {
+//         console.error("❌ Error fetching video:", err);
+//       }
+//     };
+//     fetchVideo();
+//   }, [videoId]);
+
+//   // Subscription
+//   useEffect(() => {
+//     if (!video?.owner?._id || !currentUserId) return;
+//     const fetchSubscriptionInfo = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/subscriptions/c/${video.owner._id}`);
+//         const subs = res.data.data || [];
+//         const subscribed = subs.some((s) => s.subscriber._id === currentUserId);
+//         setIsSubscribed(subscribed);
+//         setSubscriberCount(subs.length);
+//       } catch (err) {
+//         console.error("❌ Error fetching subs:", err);
+//       }
+//     };
+//     fetchSubscriptionInfo();
+//   }, [video, currentUserId]);
+
+//   // Fetch comments
+//   useEffect(() => {
+//     if (!videoId) return;
+//     const fetchComments = async () => {
+//       try {
+//         const res = await axiosInstance.get(`/comments/${videoId}`);
+//         setComments(res.data.data || []);
+//       } catch (err) {
+//         console.error("❌ Error fetching comments:", err);
+//       }
+//     };
+//     fetchComments();
+//   }, [videoId]);
+
+//   // Fetch playlists
+//   useEffect(() => {
+//     const fetchPlaylists = async () => {
+//       try {
+//         if (!userId) {
+//           console.error("No userId found in localStorage");
+//           return;
+//         }
+//         const res = await getAllPlaylists(userId);
+//         setPlaylists(res.data);
+//       } catch (error) {
+//         console.error("❌ Error fetching playlists:", error);
+//       }
+//     };
+//     fetchPlaylists();
+//   }, [userId]);
+
+//   // Handlers
+//   const handleToggleSub = async () => {
+//     if (!video?.owner?._id) return;
+//     setLoadingSub(true);
+//     try {
+//       await axiosInstance.post(`/subscriptions/toggle/${video.owner._id}`);
+//       setIsSubscribed(!isSubscribed);
+//       setSubscriberCount((p) => (isSubscribed ? p - 1 : p + 1));
+//     } catch (err) {
+//       console.error("❌ Error toggling sub:", err);
+//     } finally {
+//       setLoadingSub(false);
+//     }
+//   };
+
+//   const handleAddComment = async () => {
+//     if (!newComment) return alert("Comment cannot be empty");
+//     try {
+//       const res = await axiosInstance.post(`/comments/${videoId}`, {
+//         comment: newComment,
+//       });
+//       setComments((prev) => [res.data.data, ...prev]);
+//       setNewComment("");
+//     } catch (err) {
+//       console.error("❌ Error adding comment:", err);
+//     }
+//   };
+
+//   const handleVideoLike = async () => {
+//     if (!currentUserId) return alert("❌ Login to like.");
+//     try {
+//       await toggleVideoLike(videoId);
+//       setVideoLiked((prev) => !prev);
+//       setVideoLikes((prev) => (videoLiked ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   const handleTogglePlaylist = (playlistId) => {
+//     setSelectedPlaylists((prev) => ({
+//       ...prev,
+//       [playlistId]: !prev[playlistId],
+//     }));
+//   };
+
+//   const handleSaveToPlaylists = async () => {
+//     try {
+//       for (const [playlistId, selected] of Object.entries(selectedPlaylists)) {
+//         if (selected && !savedPlaylists[playlistId]) {
+//           await addVideoToPlaylist(playlistId, videoId);
+//           setSavedPlaylists((prev) => ({ ...prev, [playlistId]: true }));
+//         }
+//       }
+//       setConfirmation("✅ Saved to playlists!");
+//     } catch (err) {
+//       console.error("❌ Error saving to playlist:", err);
+//     }
+//   };
+
+//   const handleCreatePlaylist = async () => {
+//     try {
+//       if (!newPlaylistName.trim()) {
+//         alert("Please enter a playlist name");
+//         return;
+//       }
+//       await createPlaylist(userId, newPlaylistName.trim());
+//       alert("Playlist created successfully!");
+//       setNewPlaylistName("");
+//     } catch (error) {
+//       console.error("❌ Error creating playlist:", error);
+//     }
+//   };
+
+//   return (
+//     <div className="w-full min-h-screen bg-black flex flex-col items-center">
+//       {video ? (
+//         <>
+//           {/* 🎥 Cinema Style Video */}
+//           <div className="w-full flex justify-center bg-black">
+//             <video
+//               src={video.videoUrl || video.videofile}
+//               controls
+//               autoPlay
+//               className="w-full max-w-[1600px] aspect-video"
+//             />
+//           </div>
+
+//           {/* 📌 Details */}
+//           <div className="w-full max-w-6xl bg-white dark:bg-gray-900 p-4">
+//             <h1 className="text-2xl font-semibold mt-3">{video.title}</h1>
+
+//             {/* Actions */}
+//             <div className="flex flex-wrap items-center justify-between border-b py-3 mt-2">
+//               <span className="text-gray-600">
+//                 {formatViews(views)} views •{" "}
+//                 {new Date(video.createdAt).toLocaleDateString()}
+//               </span>
+
+//               <div className="flex flex-wrap items-center gap-3">
+//                 {/* 👍 Like */}
+//                 <button
+//                   onClick={handleVideoLike}
+//                   className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium ${
+//                     videoLiked
+//                       ? "bg-red-600 text-white"
+//                       : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+//                   }`}
+//                 >
+//                   <FaThumbsUp /> {videoLikes}
+//                 </button>
+
+//                 {/* 🔔 Subscribe */}
+//                 <button
+//                   onClick={handleToggleSub}
+//                   disabled={loadingSub}
+//                   className={`px-4 py-2 rounded-full font-medium ${
+//                     isSubscribed
+//                       ? "bg-red-600 text-white"
+//                       : "bg-blue-600 text-white hover:bg-blue-700"
+//                   }`}
+//                 >
+//                   {loadingSub
+//                     ? "Processing..."
+//                     : isSubscribed
+//                     ? `Subscribed (${subscriberCount})`
+//                     : `Subscribe (${subscriberCount})`}
+//                 </button>
+
+//                 {/* 📂 Playlist */}
+//                 <div className="relative">
+//                   <button
+//                     onClick={() => setShowPlaylistDropdown((s) => !s)}
+//                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+//                   >
+//                     <FaPlus /> Save
+//                   </button>
+//                   {showPlaylistDropdown && (
+//                     <div className="absolute right-0 mt-2 w-72 bg-white border rounded shadow-lg p-3 z-10">
+//                       <h4 className="font-semibold mb-2">Your Playlists</h4>
+//                       {playlists.length > 0 ? (
+//                         playlists.map((pl) => (
+//                           <label key={pl._id} className="flex items-center gap-2 py-1">
+//                             <input
+//                               type="checkbox"
+//                               checked={!!selectedPlaylists[pl._id]}
+//                               onChange={() => handleTogglePlaylist(pl._id)}
+//                             />
+//                             <span>{pl.name}</span>
+//                           </label>
+//                         ))
+//                       ) : (
+//                         <p className="text-gray-500 text-sm">No playlists yet</p>
+//                       )}
+
+//                       <button
+//                         onClick={handleSaveToPlaylists}
+//                         className="mt-3 w-full bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
+//                       >
+//                         Save
+//                       </button>
+
+//                       {showNewPlaylistInput ? (
+//                         <div className="mt-3">
+//                           <input
+//                             type="text"
+//                             value={newPlaylistName}
+//                             onChange={(e) => setNewPlaylistName(e.target.value)}
+//                             placeholder="New playlist name"
+//                             className="border w-full p-1 rounded"
+//                           />
+//                           <button
+//                             onClick={handleCreatePlaylist}
+//                             className="mt-2 w-full bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+//                           >
+//                             Create
+//                           </button>
+//                         </div>
+//                       ) : (
+//                         <button
+//                           onClick={() => setShowNewPlaylistInput(true)}
+//                           className="mt-3 w-full text-blue-600 text-sm"
+//                         >
+//                           + New Playlist
+//                         </button>
+//                       )}
+
+//                       {confirmation && (
+//                         <p className="text-sm text-green-700 mt-2">{confirmation}</p>
+//                       )}
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* 💬 Add Comment */}
+//             <div className="mt-6">
+//               <h3 className="text-lg font-semibold mb-2">Add Comment</h3>
+//               <textarea
+//                 className="w-full border rounded-lg p-2"
+//                 value={newComment}
+//                 onChange={(e) => setNewComment(e.target.value)}
+//                 placeholder="Write your comment..."
+//               />
+//               <button
+//                 onClick={handleAddComment}
+//                 className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
+//               >
+//                 Submit
+//               </button>
+//             </div>
+
+//             {/* 💬 Comments */}
+//             <div className="mt-6">
+//               <h3 className="text-lg font-semibold mb-3">
+//                 {comments.length} Comments
+//               </h3>
+//               {comments.length === 0 ? (
+//                 <p className="text-gray-500">No comments yet. Be the first!</p>
+//               ) : (
+//                 comments.map((c) => (
+//                   <div key={c._id} className="border-b py-3">
+//                     <p className="font-medium">{c.owner?.username}</p>
+//                     <p>{c.content}</p>
+//                     <div className="flex gap-3 mt-2">
+//                       <button
+//                         onClick={async () => {
+//                           try {
+//                             await toggleCommentLike(c._id);
+//                             setComments((prev) =>
+//                               prev.map((comment) => {
+//                                 if (comment._id === c._id) {
+//                                   const currentCount = Number(comment.likesCount) || 0;
+//                                   return {
+//                                     ...comment,
+//                                     isLiked: !comment.isLiked,
+//                                     likesCount: comment.isLiked
+//                                       ? currentCount - 1
+//                                       : currentCount + 1,
+//                                   };
+//                                 }
+//                                 return comment;
+//                               })
+//                             );
+//                           } catch (err) {
+//                             console.error("❌ Error toggling comment like:", err);
+//                           }
+//                         }}
+//                         className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+//                           c.isLiked
+//                             ? "bg-red-600 text-white"
+//                             : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+//                         }`}
+//                       >
+//                         <FaThumbsUp /> {Number(c.likesCount) || 0}
+//                       </button>
+
+//                       {c.owner?._id === currentUserId && (
+//                         <>
+//                           <button className="flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm hover:bg-yellow-600">
+//                             <FaEdit /> Edit
+//                           </button>
+//                           <button className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-full text-sm hover:bg-red-600">
+//                             <FaTrash /> Delete
+//                           </button>
+//                         </>
+//                       )}
+//                     </div>
+//                   </div>
+//                 ))
+//               )}
+//             </div>
+//           </div>
+//         </>
+//       ) : (
+//         <p className="text-center text-white">Loading video...</p>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CommentSection;

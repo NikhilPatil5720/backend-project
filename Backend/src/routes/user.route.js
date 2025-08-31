@@ -29,7 +29,7 @@ router.route("/logout").post(verifyJWT, logoutUser)
 
 router.route("/refresh-token").post(accesstokenandrefreshtoken)
 
-router.route("/reset-password").post(verifyJWT, resetpassword)
+router.route("/reset-password").post( resetpassword)
 
 router.route("/getcurrentuser").get(verifyJWT,getcurruser)
 

@@ -1,12 +1,21 @@
 // src/utils/axiosInstance.js
 import axios from "axios";
 
-const axiosInstance = axios.create({
-  // baseURL: "http://localhost:3000/api/v1",
-    baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:3000/api/v1",
+// const axiosInstance = axios.create({
+//   // baseURL: "http://localhost:3000/api/v1",
+//     baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:3000/api/v1",
 
-  withCredentials: true,   // ✅ send cookies automatically
+//   withCredentials: true,   // ✅ send cookies automatically
+// });
+
+const axiosInstance = axios.create({
+  baseURL:
+    import.meta.env.MODE === "development"
+      ? "http://localhost:3000/api/v1"
+      : "https://backend-project-1-2hld.onrender.com/api/v1",
+  withCredentials: true,
 });
+
 
 // Request Interceptor
 axiosInstance.interceptors.request.use(

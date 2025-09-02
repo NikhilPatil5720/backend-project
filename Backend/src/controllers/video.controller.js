@@ -3,7 +3,7 @@ import { Video } from "../model/video.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { uploadoncloudinary } from "../utils/cloudinary.js"
-import { asyncHandler } from "../utils/asyncHandler.js"
+import { asyncHandler } from "../utils/asynchandler.js"
 
 
 // Get all videos with pagination, search, sorting, and optional user filter

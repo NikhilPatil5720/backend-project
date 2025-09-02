@@ -32,7 +32,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Home</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
@@ -46,7 +46,7 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-6xl p-6">
+    <div className="w-full mx-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold tracking-tight">Made By @Nikhil</h1>
@@ -54,7 +54,9 @@ export default function Home() {
       </div>
 
       {/* Videos Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-10"> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
         {videos.map((video) => (
           <Link key={video._id} to={`/videos/${video._id}`}>
             <Card className="overflow-hidden rounded-2xl shadow-md hover:shadow-lg transition-transform hover:scale-[1.02] relative h-96">

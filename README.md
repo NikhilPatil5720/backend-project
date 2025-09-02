@@ -92,13 +92,13 @@ Login Page
 
  Playlist
 
-![image alt](https://github.com/NikhilPatil5720/backend-project/blob/main/Playlist.png)
+![image alt](https://github.com/NikhilPatil5720/backend-project/blob/main/PlaylistPage.png)
 
 <hr>
 
 Dashboard
 
-![image alt](https://github.com/NikhilPatil5720/backend-project/blob/main/Dashboard.png)
+![image alt](https://github.com/NikhilPatil5720/backend-project/blob/main/DashboardPage.png)
 
 <hr>
 

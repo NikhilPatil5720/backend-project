@@ -4,12 +4,25 @@ import cookieParser from "cookie-parser"
 
 const app = express()
 
-app.use(cors({
-    // origin: process.env.CORS_ORIGIN,
-      origin: process.env.CORS_ORIGIN?.split(","),
+// app.use(cors({
+//     // origin: process.env.CORS_ORIGIN,
+//       origin: process.env.CORS_ORIGIN?.split(","),
 
-    credentials: true
-}))
+//     credentials: true
+// }))
+
+
+const allowedOrigins = process.env.CORS_ORIGIN?.split(",").map(o => o.trim()) || [];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
+
 
 app.use(express.json({ limit: "16kb" }))
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))

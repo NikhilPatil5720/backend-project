@@ -130,8 +130,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
         const options = {
                 httpOnly: true,
-                secure: false,
-                sameSite: "lax",
+                secure: true,
+                sameSite: "none",
+                  maxAge: 10 * 24 * 60 * 60 * 1000 // 10 days
 
         }
 
@@ -169,8 +170,10 @@ const logoutUser = asyncHandler(async (req, res) => {
         )
         const options = {
                 httpOnly: true,
-                secure: false,
-                sameSite: "lax",
+                secure: true,
+                sameSite: "none",
+                  maxAge: 10 * 24 * 60 * 60 * 1000 // 10 days
+
         }
         return res
                 .status(200)
@@ -205,8 +208,10 @@ const accesstokenandrefreshtoken = asyncHandler(async (req, res) => {
 
                 const options = {
                         httpOnly: true,
-                        secure: false,
-                        sameSite: "lax"
+                        secure: true,
+                        sameSite: "none",
+                        maxAge: 10 * 24 * 60 * 60 * 1000 // 10 days
+
                 }
                 const { accestoken, newrefreshtoken } = await generateAccessTokenandRefreshToken(user._id)
 
